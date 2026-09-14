@@ -1,0 +1,8 @@
+.scene[data-format=wide] .scene-copy{width:35%}
+.scene[data-format=wide] .scene-visual{width:54%}
+.overview-devices .phone-device{width:33%}
+.desktop-feature>.desktop-device,.paired>.desktop-device{inset:0 auto auto 0;height:auto;aspect-ratio:3/2}
+.desktop-feature>.desktop-device .product-shot{object-fit:contain}
+.scene-7 .phone-device{display:none}
+.relation-flow article:nth-child(3) .product-shot{object-position:right top}
+.scene h1{white-space:pre-line}
