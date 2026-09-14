@@ -1,14 +1,17 @@
 export const KEY='dorm-care:v1';
 export const labels={new:'待接手',pending:'待安排',scheduled:'已安排',working:'处理中',review:'待复查',closed:'已结案'};
-export const readings=[65,64,68,72,70,67,69,73,75,72,70,71,73,76,80,82,79,75,73,72,74,76,77,78].map((humidity,i)=>({humidity,temp:Math.round((24.6+i*.074)*10)/10,time:new Date(Date.UTC(2026,8,12,3,35)+i*3600000).toISOString()}));
-readings.at(-1).temp=26.3;
-export const initial=()=>({version:1,revision:0,device:'online',event:{id:'DEMO-302-001',place:'衣柜背面',description:'衣柜背面摸起来潮湿，希望安排查看。',contact:'通过原型内进度页联系',availability:'9月14日 14:00–16:00',intent:true,status:'pending',photos:[],assignee:'',appointment:'',auth:'pending',scope:'room',facts:'',actions:'',unknown:'',reviewNote:'',feedback:null,history:[{at:'2026-09-13T02:12:00.000Z',actor:'学生',text:'提交反馈：衣柜背面潮湿。'},{at:'2026-09-13T02:20:00.000Z',actor:'管理端',text:'已接手，等待安排现场查看。'}]}});
+export const environmentModes=Object.freeze({dry:{label:'偏干',humidity:35,icon:'sun'},comfortable:{label:'适宜',humidity:52,icon:'check'},humid:{label:'偏湿',humidity:68,icon:'drop'},high:{label:'高湿',humidity:78,icon:'drops'}});
+const highHumidity=[65,64,68,72,70,67,69,73,75,72,70,71,73,76,80,82,79,75,73,72,74,76,77,78];
+export function readingsFor(mode='high'){const selected=environmentModes[mode]||environmentModes.high,delta=selected.humidity-environmentModes.high.humidity;const data=highHumidity.map((humidity,i)=>({humidity:Math.max(20,humidity+delta),temp:Math.round((24.6+i*.074)*10)/10,time:new Date(Date.UTC(2026,8,12,3,35)+i*3600000).toISOString()}));data.at(-1).temp=26.3;return data;}
+export const readings=readingsFor('high');
+export const initial=()=>({version:1,revision:0,device:'online',environmentMode:'high',event:{id:'DEMO-302-001',place:'衣柜背面',description:'衣柜背面摸起来潮湿，希望安排查看。',contact:'通过原型内进度页联系',availability:'9月14日 14:00–16:00',intent:true,status:'pending',photos:[],assignee:'',appointment:'',auth:'pending',scope:'room',facts:'',actions:'',unknown:'',reviewNote:'',feedback:null,history:[{at:'2026-09-13T02:12:00.000Z',actor:'学生',text:'提交反馈：衣柜背面潮湿。'},{at:'2026-09-13T02:20:00.000Z',actor:'管理端',text:'已接手，等待安排现场查看。'}]}});
 const need=(condition,message)=>{if(!condition)throw Error(message)};
 const str=(v)=>String(v??'').trim();
 export function transition(state,action,p={},now=new Date().toISOString()){
  const next=structuredClone(state);const e=next.event;
  const log=(actor,text)=>e.history.push({at:now,actor,text});
  if(action==='device'){need(['online','offline','empty'].includes(p.value),'设备状态无效');next.device=p.value;}
+ else if(action==='settings'){need(['online','offline','empty'].includes(p.device),'设备状态无效');need(environmentModes[p.environmentMode],'环境演示状态无效');next.device=p.device;next.environmentMode=p.environmentMode;}
  else if(action==='submit'){
   need(!e,'已有事件，请在进度页补充信息');
   for(const [k,n] of [['place','位置'],['description','现象描述'],['contact','联系偏好']])need(str(p[k]),`请填写${n}`);
